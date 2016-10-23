@@ -1,20 +1,25 @@
 package guru.nidi.mapvisualizer.switzerland.community.shape
 
-import guru.nidi.mapvisualizer.Tools
+import guru.nidi.mapvisualizer.FileTools.unzip
+import guru.nidi.mapvisualizer.GeoTools
+import guru.nidi.mapvisualizer.NetworkTools
 import org.geotools.data.FileDataStoreFinder
-import org.geotools.geojson.feature.FeatureJSON
 import java.io.File
 
 object ImportSwissCommunityShape {
     @JvmStatic
     fun main(args: Array<String>) {
-        val download = Tools.download("swiss-community-shape.zip", "https://www.bfs.admin.ch/bfsstatic/dam/assets/453578/master")
-        val shapes = Tools.unzip(download)
-        val ggg = Tools.unzip(File(shapes, "ggg_16.zip"))
-        val store = FileDataStoreFinder.getDataStore(File(ggg, "shp/g1g16.shp"))
-        val featureSource = store.featureSource
-        Tools.file("swiss-community-shape.json").writer().use { out ->
-            FeatureJSON().writeFeatureCollection(featureSource.features, out)
-        }
+        load(15, "https://www.bfs.admin.ch/bfsstatic/dam/assets/330759/master")
+        load(16, "https://www.bfs.admin.ch/bfsstatic/dam/assets/453578/master")
     }
+
+    fun load(year: Int, url: String) {
+        val download = NetworkTools.download("swiss-community-shape-$year.zip", url)
+        val shapes = unzip(download)
+        val ggg = unzip(File(shapes, "ggg_$year.zip"))
+        val store = FileDataStoreFinder.getDataStore(File(ggg, "shp/g1g$year.shp"))
+        val projected = GeoTools.projectFeatures(store.featureSource, "EPSG:3857")
+        GeoTools.writeAsGeoJson("swiss-community-shape-$year", projected)
+    }
+
 }

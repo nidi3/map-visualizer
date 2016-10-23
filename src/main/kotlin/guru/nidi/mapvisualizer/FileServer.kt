@@ -23,7 +23,7 @@ object FileServer {
         val resources = ResourceHandler()
         resources.isDirectoriesListed = true
         resources.baseResource = ResourceCollection(
-                Resource.newResource(Tools.dir),
+                Resource.newResource(FileTools.dir),
                 Resource.newResource("src/main/resources"),
                 Resource.newClassPathResource("/"))
         context.handler = resources

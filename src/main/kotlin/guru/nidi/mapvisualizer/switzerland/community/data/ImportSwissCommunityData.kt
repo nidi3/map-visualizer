@@ -1,9 +1,7 @@
 package guru.nidi.mapvisualizer.switzerland.community.data
 
-import guru.nidi.mapvisualizer.Data
-import guru.nidi.mapvisualizer.Datum
-import guru.nidi.mapvisualizer.Tools
-import guru.nidi.mapvisualizer.Tools.asDouble
+import guru.nidi.mapvisualizer.*
+import guru.nidi.mapvisualizer.ConversionTools.asDouble
 import org.apache.commons.csv.CSVFormat
 import org.apache.commons.csv.CSVRecord
 import java.io.FileInputStream
@@ -19,8 +17,8 @@ object ImportSwissCommunityData {
             return asList.subList(2, asList.size)
         }
 
-        val download = Tools.download("swiss-community-data.xls", "https://www.bfs.admin.ch/bfsstatic/dam/assets/328115/master")
-        val data = Tools.convertXlsToCsv(download)
+        val download = NetworkTools.download("swiss-community-data.xls", "https://www.bfs.admin.ch/bfsstatic/dam/assets/328115/master")
+        val data = ConversionTools.xlsToCsv(download)
         InputStreamReader(FileInputStream(data), "utf-8").use { inp ->
             val series = ArrayList<String>()
             val values = HashMap<Int, List<Double?>>()
@@ -34,7 +32,7 @@ object ImportSwissCommunityData {
                         break
                     }
             }
-            Tools.writeData("swiss-community-data", Data("Regionalporträts Schweizer Gemeinden", series, listOf(Datum(LocalDate.of(2016, 1, 1), values))))
+            FileTools.writeData("swiss-community-data", Data("Regionalporträts Schweizer Gemeinden", series, listOf(Datum(LocalDate.of(2016, 1, 1), values))))
         }
     }
 }
