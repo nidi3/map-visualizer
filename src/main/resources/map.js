@@ -1,9 +1,14 @@
+var overlay = new ol.Overlay({
+    element: document.getElementById('popup')
+});
+
 var map = new ol.Map({
     layers: [
         new ol.layer.Tile({
             source: new ol.source.OSM()
         })
     ],
+    overlays: [overlay],
     target: 'map',
     view: new ol.View({
 
@@ -14,6 +19,7 @@ var map = new ol.Map({
         resolution: 650,
         center: [0, 0]
     })
+
 });
 
 
@@ -56,10 +62,30 @@ fetch('swiss-community-shape-15.json').then(res=>res.json()).then(shapes=> {
         geo = new ol.layer.Vector({
             source: new ol.source.Vector({
                 features: new ol.format.GeoJSON().readFeatures(shapes)
-            }),
+            })
         });
         setSerie(0);
         map.addLayer(geo);
+        var selectClick = new ol.interaction.Select({
+            condition: ol.events.condition.click
+        });
+        map.addInteraction(selectClick);
+        selectClick.on('select', function (e) {
+            var props = e.selected[0].getProperties();
+            var name = props.GMDNAME;
+            var id = props.GMDNR;
+            var datum = values[id];
+            var value;
+            if (values[id]) {
+                value = values[id][serie];
+            }
+            value = (value == null) ? '*' : sigFigs(value, 4);
+            var popup = document.getElementById('popup');
+            popup.textContent = name + ': ' + value;
+
+            overlay.setPosition(e.mapBrowserEvent.coordinate);
+            popup.style.display = 'block';
+        })
     });
 });
 

@@ -9,10 +9,16 @@
 <h1 id="title">&nbsp;</h1>
 <select id="serie" onchange="serieChanged(this)"></select>
 <div id="map" style="position: relative; width: 100%; height: 400px;">
-    <div id="scale" style="background: linear-gradient(0deg, blue, green 40%, red); z-index: 1000; position: absolute; right: 4em; bottom: 2em; border: 1px solid black; width: 1em; height: 10em;">
-        <div id="min" style="position: absolute; left: 1.2em; bottom: 0; background-color: rgba(255,255,255,.5);">&nbsp;</div>
-        <div id="max" style="position: absolute; left: 1.2em; top: 0; background-color: rgba(255,255,255,.5);">&nbsp;</div>
+    <div id="scale"
+         style="background: linear-gradient(0deg, blue, green 40%, red); z-index: 1000; position: absolute; right: 4em; bottom: 2em; border: 1px solid black; width: 1em; height: 10em;">
+        <div id="min" style="position: absolute; left: 1.2em; bottom: 0; background-color: rgba(255,255,255,.5);">
+            &nbsp;</div>
+        <div id="max" style="position: absolute; left: 1.2em; top: 0; background-color: rgba(255,255,255,.5);">
+            &nbsp;</div>
     </div>
+</div>
+<div id="popup"
+     style="text-align:center;border-radius: 1em; border: 1px solid black; background-color: white; width: 20em; height: 2em; line-height: 2em;">
 </div>
 <script src="map.js"></script>
 </body>
