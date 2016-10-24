@@ -16,10 +16,23 @@ var map = new ol.Map({
     })
 });
 
+
+var cvs = document.createElement('canvas');
+cvs.height = 1;
+cvs.width = 1;
+var ctx = cvs.getContext('2d');
+
+function colorToRgba(color) {
+    ctx.fillStyle = color;
+    ctx.fillRect(0, 0, 1, 1);
+    return ctx.getImageData(0, 0, 1, 1).data;
+}
+
 var geo;
 var mins, maxs;
 var serie = 0;
 var values;
+var colorFunc = createColorFunc('blue, cyan 25%, green 50%, yellow 75%, red');
 
 fetch('swiss-community-shape-15.json').then(res=>res.json()).then(shapes=> {
     var bbox = shapes.bbox;
@@ -80,24 +93,22 @@ function setStyle(data) {
         var datum = data[id];
         var value = null;
         if (data[id]) {
-            value = data[id][serie]; //2 16
+            value = data[id][serie];
         } else {
             console.log('gemeinde ' + id + ' not found in data')
         }
         var norm = (value - mins[serie]) / (maxs[serie] - mins[serie]);
-        var red = norm < .333 ? 0 : norm < .666 ? Math.round(768 * (norm - .333)) : 255;
-        var green = norm < .666 ? 0 : Math.round(768 * (norm - .666));
-        var blue = norm < .333 ? Math.round(768 * norm) : norm < .666 ? Math.round(768 * (.666 - norm)) : 0;
+        var color = colorFunc(norm);
         return [new ol.style.Style({
             fill: new ol.style.Fill({
-                color: 'rgba(' + red + ',' + green + ',' + blue + ',' + (value == null ? '0' : '0.8') + ')'
+                color: color
             })
         })]
     });
 }
 
 function sigFigs(n, sig) {
-    return n < 0 ? -posSigFigs(-n) : posSigFigs(n);
+    return n === 0 ? '0' : n < 0 ? -posSigFigs(-n) : posSigFigs(n);
 
     function posSigFigs(n) {
         var mult = Math.pow(10, sig - Math.floor(Math.log(n) / Math.LN10) - 1);
@@ -116,3 +127,41 @@ function setSerie(s) {
     document.getElementById('max').textContent = sigFigs(maxs[serie], 4);
     setStyle(values);
 }
+
+
+function createColorFunc(gradient) {
+    document.getElementById('scale').style.background = 'linear-gradient(0deg, ' + gradient + ')';
+    var values = [];
+    var parts = gradient.split(',');
+    values.push({value: 0, color: colorToRgba(parts[0].trim())});
+    for (var i = 1; i < parts.length - 1; i++) {
+        var nameAndValue = parts[i].trim().split(/\s+/);
+        var value = nameAndValue[1];
+        value = (value.substring(value.length - 1) == '%')
+            ? parseFloat(value.substring(0, value.length - 1)) / 100
+            : parseFloat(value);
+        values.push({value: value, color: colorToRgba(nameAndValue[0])});
+    }
+    values.push({value: 1, color: colorToRgba(parts[parts.length - 1].trim())});
+    return function (v) {
+        if (v >= 1) {
+            return values[values.length - 1].color;
+        }
+        if (v <= 0) {
+            return values[0].color;
+        }
+        var i = 0;
+        while (values[i].value < v) {
+            i++;
+        }
+        var before = values[i - 1].color;
+        var after = values[i].color;
+        var pos = (v - values[i - 1].value) / ( values[i].value - values[i - 1].value);
+        var red = Math.round(before[0] * (1 - pos) + after[0] * pos);
+        var green = Math.round(before[1] * (1 - pos) + after[1] * pos);
+        var blue = Math.round(before[2] * (1 - pos) + after[2] * pos);
+        var alpha = (before[3] * (1 - pos) + after[3] * pos) / 256;
+        return 'rgba(' + red + ',' + green + ',' + blue + ',' + alpha + ')';
+    }
+}
+
